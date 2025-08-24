@@ -40,8 +40,6 @@ class UserUpdate(BaseModel):
 
 class CommentUpdate(BaseModel):
     comment_text: str
-    post_id: int
-    author_id: int
 
 # ------- Posts ------- 
 
@@ -146,10 +144,11 @@ def list_comments():
 # Update comment by comment_id
 @app.patch("/comments/{comment_id}", tags=["Comments"])
 def update_comment(comment_id: int, payload: CommentUpdate):
-    patch = payload.model_dump(exclude_none=True)
-    if not patch:
-        raise HTTPException(400, "Nothing to update")
-    response = supabase.table("comment").update(patch).eq("comment_id", comment_id).execute()
+    response = (
+        supabase
+        .table("comment").update({"comment_text": payload.comment_text})
+        .eq("comment_id", comment_id).execute()
+    )
     if not response.data:
         raise HTTPException(404, "Comment not found")
     return response.data[0]
